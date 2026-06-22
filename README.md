@@ -91,7 +91,7 @@ PythonAnywhere is a great platform for hosting Django apps. Follow these steps t
 2. Open a new **Bash Console**.
 3. Clone your repository into your PythonAnywhere space:
    ```bash
-   git clone https://github.com/your-username/Remote-Printer.git
+   git clone https://github.com/your-username/Wire-to-Web.git
    ```
 4. Create a virtual environment using Python 3.10 (or higher):
    ```bash
@@ -99,12 +99,12 @@ PythonAnywhere is a great platform for hosting Django apps. Follow these steps t
    ```
 5. Install the server dependencies:
    ```bash
-   cd Remote-Printer/server
+   cd Wire-to-Web/server
    pip install -r requirements.txt
    ```
 
 ### 2. Configure Django settings
-1. Open the file editor on PythonAnywhere and open `/home/<your-username>/Remote-Printer/server/server/settings.py`.
+1. Open the file editor on PythonAnywhere and open `/home/<your-username>/Wire-to-Web/server/server/settings.py`.
 2. Modify `ALLOWED_HOSTS` to include your PythonAnywhere hostname:
    ```python
    ALLOWED_HOSTS = ['<your-username>.pythonanywhere.com']
@@ -123,8 +123,8 @@ PythonAnywhere is a great platform for hosting Django apps. Follow these steps t
 3. Select **Manual Configuration** (Do NOT choose "Django" here—choosing manual configuration gives you absolute control over virtual environment paths).
 4. Select **Python 3.10** (matching your virtual environment).
 5. Once created, configure the paths on the Web tab:
-   - **Source code**: `/home/<your-username>/Remote-Printer/server`
-   - **Working directory**: `/home/<your-username>/Remote-Printer/server`
+   - **Source code**: `/home/<your-username>/Wire-to-Web/server`
+   - **Working directory**: `/home/<your-username>/Wire-to-Web/server`
    - **Virtualenv**: `/home/<your-username>/.virtualenvs/env-wiretoweb`
 
 ### 4. Setup WSGI Configuration
@@ -135,7 +135,7 @@ PythonAnywhere is a great platform for hosting Django apps. Follow these steps t
    import sys
 
    # Add your project directory to the sys.path
-   path = '/home/<your-username>/Remote-Printer/server'
+   path = '/home/<your-username>/Wire-to-Web/server'
    if path not in sys.path:
        sys.path.insert(0, path)
 
@@ -152,8 +152,8 @@ To ensure styles, images, and documents load correctly, define the directory map
 
 | URL | Directory Path |
 | :--- | :--- |
-| `/static/` | `/home/<your-username>/Remote-Printer/server/staticfiles/` |
-| `/media/` | `/home/<your-username>/Remote-Printer/server/media/` |
+| `/static/` | `/home/<your-username>/Wire-to-Web/server/staticfiles/` |
+| `/media/` | `/home/<your-username>/Wire-to-Web/server/media/` |
 
 ### 6. Reload Web App
 1. Go to the top of the **Web** tab.

@@ -346,6 +346,18 @@ a:hover {
   margin-bottom: 20px;
 }
 
+.form-row-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 576px) {
+  .form-row-responsive {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .form-group label {
   display: block;
   font-size: 14px;

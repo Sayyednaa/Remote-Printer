@@ -251,10 +251,10 @@ class CloudPrintAgent:
     def print_file(self, printer_name, file_path):
         """
         Prints a PDF file natively to a target printer using a robust hierarchy of fallback methods:
-        1. win32api ShellExecute with "printto" verb.
-        2. Local Adobe Acrobat Reader (if installed).
-        3. Local SumatraPDF (if installed).
-        4. PDFtoPrinter.exe (downloaded automatically if needed).
+        1. PDFtoPrinter.exe (downloaded automatically if needed).
+        2. win32api ShellExecute with "printto" verb.
+        3. Local Adobe Acrobat Reader (if installed).
+        4. Local SumatraPDF (if installed).
         5. win32api ShellExecute with "print" verb (fallback default).
         """
         import subprocess
@@ -274,19 +274,34 @@ class CloudPrintAgent:
         success = False
         print_errors = []
 
-        # --- Method 1: win32api ShellExecute with "printto" verb ---
-        try:
-            print(f"[*] Method 1: Triggering Windows 'printto' verb for file: {file_path}")
-            # printto arguments: file, printer, driver (optional), port (optional)
-            win32api.ShellExecute(0, "printto", file_path, f'"{printer_name}"', ".", 0)
-            time.sleep(3)  # Give spooler time
-            success = True
-            print("[+] Method 1 (printto verb) completed successfully.")
-        except Exception as e:
-            print_errors.append(f"ShellExecute printto: {e}")
-            print(f"[-] Method 1 failed: {e}")
+        # --- Method 1: PDFtoPrinter.exe (Automatic Helper download) ---
+        helper_path = self.download_pdftoprinter_if_needed()
+        if helper_path and os.path.exists(helper_path):
+            try:
+                print(f"[*] Method 1: Executing PDFtoPrinter helper...")
+                # Command parameters: PDFtoPrinter.exe <filename> <printer_name>
+                cmd = [helper_path, file_path, printer_name]
+                subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                success = True
+                print("[+] Method 1 (PDFtoPrinter) completed successfully.")
+            except Exception as e:
+                print_errors.append(f"PDFtoPrinter helper: {e}")
+                print(f"[-] Method 1 failed: {e}")
 
-        # --- Method 2: Adobe Acrobat Reader ---
+        # --- Method 2: win32api ShellExecute with "printto" verb ---
+        if not success:
+            try:
+                print(f"[*] Method 2: Triggering Windows 'printto' verb for file: {file_path}")
+                # printto arguments: file, printer, driver (optional), port (optional)
+                win32api.ShellExecute(0, "printto", file_path, f'"{printer_name}"', ".", 0)
+                time.sleep(3)  # Give spooler time
+                success = True
+                print("[+] Method 2 (printto verb) completed successfully.")
+            except Exception as e:
+                print_errors.append(f"ShellExecute printto: {e}")
+                print(f"[-] Method 2 failed: {e}")
+
+        # --- Method 3: Adobe Acrobat Reader ---
         if not success:
             acrobat_paths = [
                 r"C:\Program Files\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe",
@@ -297,17 +312,17 @@ class CloudPrintAgent:
             acrobat_bin = next((p for p in acrobat_paths if os.path.exists(p)), None)
             if acrobat_bin:
                 try:
-                    print(f"[*] Method 2: Triggering Adobe Acrobat Reader: {acrobat_bin}")
+                    print(f"[*] Method 3: Triggering Adobe Acrobat Reader: {acrobat_bin}")
                     # Command line parameters: /t <filename> <printer_name>
                     cmd = [acrobat_bin, "/t", file_path, printer_name]
                     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     success = True
-                    print("[+] Method 2 (Adobe Reader) print job sent.")
+                    print("[+] Method 3 (Adobe Reader) print job sent.")
                 except Exception as e:
                     print_errors.append(f"Adobe Acrobat Reader: {e}")
-                    print(f"[-] Method 2 failed: {e}")
+                    print(f"[-] Method 3 failed: {e}")
 
-        # --- Method 3: SumatraPDF ---
+        # --- Method 4: SumatraPDF ---
         if not success:
             sumatra_paths = [
                 r"C:\Program Files\SumatraPDF\SumatraPDF.exe",
@@ -316,29 +331,14 @@ class CloudPrintAgent:
             sumatra_bin = next((p for p in sumatra_paths if os.path.exists(p)), None)
             if sumatra_bin:
                 try:
-                    print(f"[*] Method 3: Triggering SumatraPDF: {sumatra_bin}")
+                    print(f"[*] Method 4: Triggering SumatraPDF: {sumatra_bin}")
                     # Command parameters: -print-to <printer_name> -exit-on-print <filename>
                     cmd = [sumatra_bin, "-print-to", printer_name, "-exit-on-print", file_path]
                     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     success = True
-                    print("[+] Method 3 (SumatraPDF) print job sent.")
+                    print("[+] Method 4 (SumatraPDF) print job sent.")
                 except Exception as e:
                     print_errors.append(f"SumatraPDF: {e}")
-                    print(f"[-] Method 3 failed: {e}")
-
-        # --- Method 4: PDFtoPrinter.exe (Automatic Helper download) ---
-        if not success:
-            helper_path = self.download_pdftoprinter_if_needed()
-            if helper_path and os.path.exists(helper_path):
-                try:
-                    print(f"[*] Method 4: Executing PDFtoPrinter helper...")
-                    # Command parameters: PDFtoPrinter.exe <filename> <printer_name>
-                    cmd = [helper_path, file_path, printer_name]
-                    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    success = True
-                    print("[+] Method 4 (PDFtoPrinter) completed successfully.")
-                except Exception as e:
-                    print_errors.append(f"PDFtoPrinter helper: {e}")
                     print(f"[-] Method 4 failed: {e}")
 
         # --- Method 5: win32api ShellExecute with default "print" verb ---
