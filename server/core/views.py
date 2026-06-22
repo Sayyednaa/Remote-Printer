@@ -70,6 +70,20 @@ def cleanup_old_files():
 
 # --- Web Views ---
 
+def home_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'core/landing.html')
+
+
+def privacy_view(request):
+    return render(request, 'core/privacy_policy.html')
+
+
+def terms_view(request):
+    return render(request, 'core/terms_of_service.html')
+
+
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')

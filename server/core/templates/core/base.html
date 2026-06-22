@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}CloudPrintHub - Print Remotely{% endblock %}</title>
+  <title>{% block title %}WireToWeb - Print Remotely{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -13,9 +14,9 @@
   <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="container nav-container">
-      <a href="{% url 'dashboard' %}" class="logo-group">
+      <a href="{% url 'home' %}" class="logo-group">
         <img src="{% static 'img/logo.png' %}" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
-        <span class="logo-text">CloudPrintHub</span>
+        <span class="logo-text">WireToWeb</span>
       </a>
 
       <div class="nav-links">
@@ -27,7 +28,7 @@
 
       <div class="nav-actions">
         {% if user.is_authenticated %}
-          <span class="nav-link" style="font-size: 13px;">Hi, <strong>{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</strong></span>
+          <span class="nav-link nav-welcome" style="font-size: 13px;">Hi, <strong>{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</strong></span>
           <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm" style="height:36px; padding: 6px 12px;">Sign out</a>
         {% else %}
           <a href="{% url 'login' %}" class="btn btn-link nav-link">Sign in</a>
@@ -45,7 +46,11 @@
   <!-- Cream-tinted Footer -->
   <footer class="footer">
     <div class="container">
-      <p>&copy; 2026 CloudPrintHub. All rights reserved. Built with passion & clay.</p>
+      <p style="margin-bottom: 8px;">&copy; 2026 WireToWeb. All rights reserved. Built with passion &amp; clay.</p>
+      <div style="display: flex; justify-content: center; gap: 16px; font-size: 13px;">
+        <a href="{% url 'terms' %}" style="color: var(--color-muted); text-decoration: underline;">Terms of Service</a>
+        <a href="{% url 'privacy' %}" style="color: var(--color-muted); text-decoration: underline;">Privacy Policy</a>
+      </div>
     </div>
   </footer>
 

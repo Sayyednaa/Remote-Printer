@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Privacy Policy - WireToWeb{% endblock %}
+
+{% block content %}
+<div class="container section-padding" style="padding-top: 40px; padding-bottom: 60px; max-width: 800px;">
+  <div style="background-color: var(--color-surface-card); border: 1px solid var(--color-hairline); border-radius: var(--rounded-lg); padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+    
+    <h1 style="font-size: 36px; letter-spacing: -1px; margin-bottom: 8px; font-weight: 700;">Privacy Policy</h1>
+    <p style="font-size: 14px; color: var(--color-muted); margin-bottom: 32px;">Last Updated: June 22, 2026</p>
+
+    <div style="line-height: 1.6; color: var(--color-body); font-size: 15px; display: flex; flex-direction: column; gap: 24px;">
+      
+      <section>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--color-ink); margin-bottom: 8px;">1. Introduction</h3>
+        <p>
+          At WireToWeb, we take privacy and data security seriously. This policy explains what information we collect, how it is used, and the strict safety guarantees we establish for your documents and hardware queues.
+        </p>
+      </section>
+
+      <section>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--color-ink); margin-bottom: 8px;">2. User Profiles &amp; Printer Data</h3>
+        <p>
+          We collect account registration data (email, name, username, and encrypted password) to secure user dashboards. We also collect printer metadata registered by the WireToWeb Desktop Agent (printer name, connection status, last-seen timestamp, and security token) to route jobs to correct hardware endpoints.
+        </p>
+      </section>
+
+      <section style="background-color: var(--color-surface-soft); border-left: 4px solid var(--color-brand-pink); padding: 16px; border-radius: var(--rounded-xs);">
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--color-brand-pink); margin-bottom: 8px;">3. The Zero-Retention Document Promise</h3>
+        <p style="margin-bottom: 0;">
+          Your document contents are private. PDF print payloads uploaded via the dashboard or compiled inside the A4 Canvas Designer are stored temporarily on our secure server. <strong>Upon successful download and delivery to the local desktop print spooler, the PDF file is immediately and permanently deleted from our server storage.</strong> Print jobs that are cancelled or fail to execute are automatically and permanently purged after 24 hours.
+        </p>
+      </section>
+
+      <section>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--color-ink); margin-bottom: 8px;">4. Local Network &amp; Hardware Safety</h3>
+        <p>
+          The WireToWeb Desktop Agent uses secure outbound HTTP polling. The agent never opens incoming ports on your router, requires no VPN setups, and does not scan or inspect local network traffic. The agent only interacts with the local Windows Print Spooler APIs (`win32print`) to execute your requested jobs.
+        </p>
+      </section>
+
+      <section>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--color-ink); margin-bottom: 8px;">5. Third-Party Disclosures</h3>
+        <p>
+          We do not sell, trade, or share your account metadata or document payloads with third parties. All data transmission between the desktop agent, the web portal, and your browser is encrypted.
+        </p>
+      </section>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -129,6 +129,17 @@ class CloudPrintWebViewsTestCase(TestCase):
         self.client.login(username='webuser', password='webpassword123')
 
     def test_dashboard_view_loads_successfully(self):
-        response = self.client.get('/')
+        response = self.client.get('/dashboard/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'core/dashboard.html')
+
+    def test_home_view_redirects_for_logged_in_user(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/dashboard/')
+
+    def test_home_view_renders_landing_page_for_anonymous_user(self):
+        self.client.logout()
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/landing.html')

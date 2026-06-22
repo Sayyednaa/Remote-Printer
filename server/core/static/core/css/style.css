@@ -549,6 +549,9 @@ textarea.form-control {
 
 .canvas-container-layout {
   display: grid;
+  grid-template-areas: 
+    "viewport"
+    "sidebar";
   grid-template-columns: 1fr;
   gap: 24px;
   margin-top: 24px;
@@ -556,11 +559,13 @@ textarea.form-control {
 
 @media (min-width: 1024px) {
   .canvas-container-layout {
+    grid-template-areas: "sidebar viewport";
     grid-template-columns: 340px 1fr;
   }
 }
 
 .canvas-sidebar {
+  grid-area: sidebar;
   background-color: var(--color-surface-card);
   border: 1px solid var(--color-hairline);
   border-radius: var(--rounded-lg);
@@ -573,6 +578,7 @@ textarea.form-control {
 }
 
 .canvas-viewport {
+  grid-area: viewport;
   background-color: var(--color-surface-soft);
   border: 1px solid var(--color-hairline);
   border-radius: var(--rounded-lg);
@@ -582,7 +588,7 @@ textarea.form-control {
   align-items: center;
   gap: 40px;
   max-height: calc(100vh - 100px);
-  overflow-y: auto;
+  overflow: auto;
   position: relative;
 }
 
@@ -702,3 +708,213 @@ textarea.form-control {
   background-color: #d32f2f;
 }
 
+/* ==========================================================================
+   Canvas Crop Extension Styles
+   ========================================================================== */
+
+.canvas-element.selected.cropping .resize-handle {
+  display: none !important;
+}
+
+.crop-box-overlay {
+  box-shadow: 0 0 0 9999px rgba(10, 10, 10, 0.4);
+}
+
+.crop-handle {
+  transition: transform 0.1s ease;
+}
+
+.crop-handle:hover {
+  transform: scale(1.3);
+}
+
+/* ==========================================================================
+   Landing Page Styling Extensions
+   ========================================================================== */
+
+.landing-hero {
+  text-align: center;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 80px 24px 60px 24px;
+}
+
+.landing-hero h1 {
+  font-size: 64px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -2.5px;
+  color: var(--color-ink);
+  margin-bottom: 24px;
+}
+
+.landing-hero p {
+  font-size: 18px;
+  color: var(--color-muted);
+  max-width: 680px;
+  margin: 0 auto 32px auto;
+  line-height: 1.6;
+}
+
+.hero-cta-group {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 56px;
+}
+
+.hero-preview {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--rounded-xl);
+  padding: 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  text-align: left;
+}
+
+.hero-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-hairline);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.preview-dot-group {
+  display: flex;
+  gap: 6px;
+}
+
+.preview-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-muted-soft);
+  border-radius: 50%;
+}
+
+.hero-preview-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 600px) {
+  .hero-preview-body {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.preview-main-graphic {
+  background-color: #ffffff;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--rounded-md);
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-brand-pink);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.preview-sidebar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-ctrl-bar {
+  height: 24px;
+  background-color: var(--color-surface-soft);
+  border-radius: var(--rounded-xs);
+  width: 100%;
+}
+
+.preview-ctrl-bar.short {
+  width: 60%;
+}
+
+/* ==========================================================================
+   Mobile Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .canvas-viewport {
+    padding: 16px;
+    max-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Navigation spacing */
+  .nav-welcome {
+    display: none !important;
+  }
+  .nav-links {
+    gap: 12px;
+  }
+  
+  /* Layout constraints */
+  .container {
+    padding: 0 16px;
+  }
+  .section-padding {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  /* Grid adjustments */
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .dashboard-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .dashboard-title-row h2 {
+    font-size: 28px;
+  }
+
+  /* Landing page adjustments */
+  .landing-hero {
+    padding: 40px 16px 40px 16px;
+  }
+  .landing-hero h1 {
+    font-size: 38px;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+  }
+  .landing-hero p {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  .hero-cta-group {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .hero-cta-group .btn {
+    width: 100%;
+    height: 48px;
+  }
+  .hero-preview {
+    padding: 16px;
+    border-radius: var(--rounded-md);
+  }
+  .preview-main-graphic {
+    height: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    display: none;
+  }
+}

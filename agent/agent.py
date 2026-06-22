@@ -59,7 +59,7 @@ class CloudPrintAgent:
             print(f"[-] Error saving configuration: {e}")
 
     def prompt_setup(self):
-        print("=== CloudPrintHub Windows Agent Setup ===")
+        print("=== WireToWeb Windows Agent Setup ===")
         server_input = input(f"Enter Server URL [{self.server_url}]: ").strip()
         if server_input:
             self.server_url = server_input.rstrip('/')
@@ -445,7 +445,7 @@ class CloudPrintAgent:
             t.start()
             threads.append(t)
 
-        print("[+] CloudPrintHub Agent fully started. Polling print queues... Press Ctrl+C to stop.")
+        print("[+] WireToWeb Agent fully started. Polling print queues... Press Ctrl+C to stop.")
         try:
             while self.running:
                 time.sleep(1)

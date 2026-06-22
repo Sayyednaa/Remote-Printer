@@ -181,24 +181,31 @@ function adjustZIndex(direction) {
     const parent = selectedElement.parentNode;
     if (!parent) return;
 
+    // Get all canvas elements on this page in DOM order
+    const elements = Array.from(parent.querySelectorAll(".canvas-element"));
+    const index = elements.indexOf(selectedElement);
+    if (index === -1) return;
+
     if (direction > 0) {
-        // Bring Forward: Move element to the end of the DOM parent list
-        parent.appendChild(selectedElement);
-        console.log("[*] Moved element to Front (top layer)");
-    } else {
-        // Send Backward: Move element to the start (after the page counter badge)
-        const firstCanvasEl = parent.querySelector(".canvas-element");
-        if (firstCanvasEl && firstCanvasEl !== selectedElement) {
-            parent.insertBefore(selectedElement, firstCanvasEl);
+        // Bring Forward: swap with the next canvas element
+        if (index < elements.length - 1) {
+            const nextEl = elements[index + 1];
+            // To place selectedElement after nextEl, we insert it before nextEl.nextSibling
+            parent.insertBefore(selectedElement, nextEl.nextSibling);
+            console.log("[*] Moved element one layer Forward");
         } else {
-            const badge = parent.querySelector(".page-badge-counter");
-            if (badge && badge.nextSibling) {
-                parent.insertBefore(selectedElement, badge.nextSibling);
-            } else {
-                parent.insertBefore(selectedElement, parent.firstChild);
-            }
+            console.log("[*] Element is already at the top layer");
         }
-        console.log("[*] Moved element to Back (bottom layer)");
+    } else {
+        // Send Backward: swap with the previous canvas element
+        if (index > 0) {
+            const prevEl = elements[index - 1];
+            // To place selectedElement before prevEl, we insert it before prevEl
+            parent.insertBefore(selectedElement, prevEl);
+            console.log("[*] Moved element one layer Backward");
+        } else {
+            console.log("[*] Element is already at the bottom layer");
+        }
     }
 }
 
@@ -315,28 +322,229 @@ function toggleCropMode() {
         isCropMode = true;
         selectedElement.classList.add("cropping");
         selectedElement.style.overflow = "visible";
-        img.style.opacity = "0.6";
+        img.style.opacity = "0.5";
         if (cropBtn) {
             cropBtn.textContent = "Finish Cropping";
             cropBtn.classList.remove("btn-secondary");
             cropBtn.classList.add("btn-primary");
         }
 
-        // Lock image sizes in absolute pixels so resizing handles only resize the crop wrapper window frame
-        img.dataset.startWidth = img.offsetWidth;
-        img.dataset.startHeight = img.offsetHeight;
-        img.style.width = `${img.offsetWidth}px`;
-        img.style.height = `${img.offsetHeight}px`;
+        // Lock image sizes in absolute pixels so they don't stretch
+        const imgStartWidth = img.offsetWidth;
+        const imgStartHeight = img.offsetHeight;
+        img.style.width = `${imgStartWidth}px`;
+        img.style.height = `${imgStartHeight}px`;
         if (!img.style.left) img.style.left = "0px";
         if (!img.style.top) img.style.top = "0px";
 
-        console.log("[*] Entered Image Crop Mode");
+        // Create Crop Box Overlay
+        const cropBox = document.createElement("div");
+        cropBox.className = "crop-box-overlay";
+        cropBox.style.position = "absolute";
+        cropBox.style.left = "0px";
+        cropBox.style.top = "0px";
+        cropBox.style.width = `${selectedElement.offsetWidth}px`;
+        cropBox.style.height = `${selectedElement.offsetHeight}px`;
+        cropBox.style.border = "2px dashed var(--color-brand-pink)";
+        cropBox.style.boxSizing = "border-box";
+        cropBox.style.cursor = "move";
+        cropBox.style.zIndex = "100";
+
+        // Add 8 handles to the crop box
+        const positions = ["nw", "ne", "sw", "se", "n", "s", "e", "w"];
+        positions.forEach(pos => {
+            const handle = document.createElement("div");
+            handle.className = `crop-handle crop-handle-${pos}`;
+            handle.dataset.handle = pos;
+            
+            // Positioning coordinates and cursor
+            handle.style.position = "absolute";
+            handle.style.width = "10px";
+            handle.style.height = "10px";
+            handle.style.backgroundColor = "var(--color-brand-pink)";
+            handle.style.border = "1px solid white";
+            handle.style.borderRadius = "50%";
+            handle.style.zIndex = "101";
+            
+            if (pos === "nw") { handle.style.top = "-5px"; handle.style.left = "-5px"; handle.style.cursor = "nwse-resize"; }
+            else if (pos === "ne") { handle.style.top = "-5px"; handle.style.right = "-5px"; handle.style.cursor = "nesw-resize"; }
+            else if (pos === "sw") { handle.style.bottom = "-5px"; handle.style.left = "-5px"; handle.style.cursor = "nesw-resize"; }
+            else if (pos === "se") { handle.style.bottom = "-5px"; handle.style.right = "-5px"; handle.style.cursor = "nwse-resize"; }
+            else if (pos === "n") { handle.style.top = "-5px"; handle.style.left = "calc(50% - 5px)"; handle.style.cursor = "ns-resize"; }
+            else if (pos === "s") { handle.style.bottom = "-5px"; handle.style.left = "calc(50% - 5px)"; handle.style.cursor = "ns-resize"; }
+            else if (pos === "e") { handle.style.top = "calc(50% - 5px)"; handle.style.right = "-5px"; handle.style.cursor = "ew-resize"; }
+            else if (pos === "w") { handle.style.top = "calc(50% - 5px)"; handle.style.left = "-5px"; handle.style.cursor = "ew-resize"; }
+            
+            cropBox.appendChild(handle);
+        });
+
+        // Add dragging to crop box
+        cropBox.addEventListener("mousedown", (e) => {
+            if (e.target.classList.contains("crop-handle")) return;
+            e.stopPropagation();
+            e.preventDefault();
+
+            const imgL = parseFloat(img.style.left) || 0;
+            const imgT = parseFloat(img.style.top) || 0;
+            const imgW = img.offsetWidth;
+            const imgH = img.offsetHeight;
+
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startCbLeft = parseFloat(cropBox.style.left) || 0;
+            const startCbTop = parseFloat(cropBox.style.top) || 0;
+            const cbW = cropBox.offsetWidth;
+            const cbH = cropBox.offsetHeight;
+
+            function onCropBoxMove(moveEvent) {
+                const dx = moveEvent.clientX - startX;
+                const dy = moveEvent.clientY - startY;
+
+                let newCbLeft = startCbLeft + dx;
+                let newCbTop = startCbTop + dy;
+
+                // Constrain crop box to stay inside image bounds
+                newCbLeft = Math.max(imgL, Math.min(imgL + imgW - cbW, newCbLeft));
+                newCbTop = Math.max(imgT, Math.min(imgT + imgH - cbH, newCbTop));
+
+                cropBox.style.left = `${newCbLeft}px`;
+                cropBox.style.top = `${newCbTop}px`;
+            }
+
+            function onCropBoxUp() {
+                window.removeEventListener("mousemove", onCropBoxMove);
+                window.removeEventListener("mouseup", onCropBoxUp);
+            }
+
+            window.addEventListener("mousemove", onCropBoxMove);
+            window.addEventListener("mouseup", onCropBoxUp);
+        });
+
+        // Add resizing to crop handles
+        cropBox.querySelectorAll(".crop-handle").forEach(handle => {
+            handle.addEventListener("mousedown", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+
+                const pos = handle.dataset.handle;
+                const imgL = parseFloat(img.style.left) || 0;
+                const imgT = parseFloat(img.style.top) || 0;
+                const imgW = img.offsetWidth;
+                const imgH = img.offsetHeight;
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startCbLeft = parseFloat(cropBox.style.left) || 0;
+                const startCbTop = parseFloat(cropBox.style.top) || 0;
+                const startCbWidth = cropBox.offsetWidth;
+                const startCbHeight = cropBox.offsetHeight;
+
+                function onCropHandleMove(moveEvent) {
+                    const dx = moveEvent.clientX - startX;
+                    const dy = moveEvent.clientY - startY;
+
+                    let newCbLeft = startCbLeft;
+                    let newCbTop = startCbTop;
+                    let newCbWidth = startCbWidth;
+                    let newCbHeight = startCbHeight;
+
+                    if (pos.includes("e")) {
+                        newCbWidth = startCbWidth + dx;
+                    }
+                    if (pos.includes("w")) {
+                        newCbWidth = startCbWidth - dx;
+                        newCbLeft = startCbLeft + dx;
+                    }
+                    if (pos.includes("s")) {
+                        newCbHeight = startCbHeight + dy;
+                    }
+                    if (pos.includes("n")) {
+                        newCbHeight = startCbHeight - dy;
+                        newCbTop = startCbTop + dy;
+                    }
+
+                    // Min size constraints
+                    const minSize = 20;
+                    if (newCbWidth < minSize) {
+                        newCbWidth = minSize;
+                        if (pos.includes("w")) {
+                            newCbLeft = startCbLeft + startCbWidth - minSize;
+                        }
+                    }
+                    if (newCbHeight < minSize) {
+                        newCbHeight = minSize;
+                        if (pos.includes("n")) {
+                            newCbTop = startCbTop + startCbHeight - minSize;
+                        }
+                    }
+
+                    // Constrain within image bounds
+                    if (newCbLeft < imgL) {
+                        newCbWidth += (newCbLeft - imgL);
+                        newCbLeft = imgL;
+                    }
+                    if (newCbTop < imgT) {
+                        newCbHeight += (newCbTop - imgT);
+                        newCbTop = imgT;
+                    }
+                    if (newCbLeft + newCbWidth > imgL + imgW) {
+                        newCbWidth = imgL + imgW - newCbLeft;
+                    }
+                    if (newCbTop + newCbHeight > imgT + imgH) {
+                        newCbHeight = imgT + imgH - newCbTop;
+                    }
+
+                    cropBox.style.left = `${newCbLeft}px`;
+                    cropBox.style.top = `${newCbTop}px`;
+                    cropBox.style.width = `${newCbWidth}px`;
+                    cropBox.style.height = `${newCbHeight}px`;
+                }
+
+                function onCropHandleUp() {
+                    window.removeEventListener("mousemove", onCropHandleMove);
+                    window.removeEventListener("mouseup", onCropHandleUp);
+                }
+
+                window.addEventListener("mousemove", onCropHandleMove);
+                window.addEventListener("mouseup", onCropHandleUp);
+            });
+        });
+
+        selectedElement.appendChild(cropBox);
+        console.log("[*] Entered Image Crop Mode with Visual Overlay");
     } else {
         // Exit Crop Mode
         isCropMode = false;
         selectedElement.classList.remove("cropping");
         selectedElement.style.overflow = "hidden";
         img.style.opacity = "1";
+
+        const cropBox = selectedElement.querySelector(".crop-box-overlay");
+        if (cropBox) {
+            const cbLeft = parseFloat(cropBox.style.left) || 0;
+            const cbTop = parseFloat(cropBox.style.top) || 0;
+            const cbWidth = cropBox.offsetWidth;
+            const cbHeight = cropBox.offsetHeight;
+
+            // Apply new container coordinates
+            const elLeft = parseFloat(selectedElement.style.left) || 0;
+            const elTop = parseFloat(selectedElement.style.top) || 0;
+
+            selectedElement.style.left = `${elLeft + cbLeft}px`;
+            selectedElement.style.top = `${elTop + cbTop}px`;
+            selectedElement.style.width = `${cbWidth}px`;
+            selectedElement.style.height = `${cbHeight}px`;
+
+            // Adjust image position offsets inside container to match new clip
+            const imgLeft = parseFloat(img.style.left) || 0;
+            const imgTop = parseFloat(img.style.top) || 0;
+
+            img.style.left = `${imgLeft - cbLeft}px`;
+            img.style.top = `${imgTop - cbTop}px`;
+
+            cropBox.remove();
+        }
+
         if (cropBtn) {
             cropBtn.textContent = "Crop Image";
             cropBtn.classList.remove("btn-primary");
@@ -356,32 +564,12 @@ function setupElementDragAndResize(el) {
             return;
         }
         
-        selectElement(el, e);
-
-        // If Crop Mode is active on image, pan the image inside the crop frame
-        if (isCropMode && e.target.tagName.toLowerCase() === "img") {
-            const img = e.target;
-            let startX = e.clientX;
-            let startY = e.clientY;
-            let imgLeft = parseFloat(img.style.left) || 0;
-            let imgTop = parseFloat(img.style.top) || 0;
-
-            function onImageMouseMove(moveEvent) {
-                let dx = moveEvent.clientX - startX;
-                let dy = moveEvent.clientY - startY;
-                img.style.left = `${imgLeft + dx}px`;
-                img.style.top = `${imgTop + dy}px`;
-            }
-
-            function onImageMouseUp() {
-                window.removeEventListener("mousemove", onImageMouseMove);
-                window.removeEventListener("mouseup", onImageMouseUp);
-            }
-
-            window.addEventListener("mousemove", onImageMouseMove);
-            window.addEventListener("mouseup", onImageMouseUp);
+        // If Crop Mode is active, disable dragging the element wrapper
+        if (isCropMode) {
             return;
         }
+
+        selectElement(el, e);
         
         let startX = e.clientX;
         let startY = e.clientY;
@@ -421,13 +609,27 @@ function setupElementDragAndResize(el) {
             e.stopPropagation();
             e.preventDefault();
             
+            if (isCropMode) {
+                return;
+            }
+            
             const position = handle.dataset.handle;
+            const img = el.querySelector("img");
+            
             let startX = e.clientX;
             let startY = e.clientY;
             let startLeft = parseInt(el.style.left) || 0;
             let startTop = parseInt(el.style.top) || 0;
             let startWidth = el.offsetWidth;
             let startHeight = el.offsetHeight;
+            
+            let imgStartWidth, imgStartHeight, imgStartLeft, imgStartTop;
+            if (img) {
+                imgStartWidth = parseFloat(img.style.width) || img.offsetWidth;
+                imgStartHeight = parseFloat(img.style.height) || img.offsetHeight;
+                imgStartLeft = parseFloat(img.style.left) || 0;
+                imgStartTop = parseFloat(img.style.top) || 0;
+            }
             
             function onMouseMove(moveEvent) {
                 let dx = moveEvent.clientX - startX;
@@ -485,20 +687,14 @@ function setupElementDragAndResize(el) {
                     newHeight = PAGE_HEIGHT - newTop;
                 }
                 
-                // Counteract image shifting if in Crop Mode
-                if (isCropMode && el.querySelector("img")) {
-                    const img = el.querySelector("img");
-                    
-                    if (!img.dataset.cropImgLeft) {
-                        img.dataset.cropImgLeft = parseFloat(img.style.left) || 0;
-                        img.dataset.cropImgTop = parseFloat(img.style.top) || 0;
-                    }
-                    
-                    const diffLeft = newLeft - startLeft;
-                    const diffTop = newTop - startTop;
-                    
-                    img.style.left = `${parseFloat(img.dataset.cropImgLeft) - diffLeft}px`;
-                    img.style.top = `${parseFloat(img.dataset.cropImgTop) - diffTop}px`;
+                // Scale the image proportionally inside the container
+                if (img) {
+                    const scaleX = newWidth / startWidth;
+                    const scaleY = newHeight / startHeight;
+                    img.style.width = `${imgStartWidth * scaleX}px`;
+                    img.style.height = `${imgStartHeight * scaleY}px`;
+                    img.style.left = `${imgStartLeft * scaleX}px`;
+                    img.style.top = `${imgStartTop * scaleY}px`;
                 }
 
                 el.style.left = `${newLeft}px`;
@@ -510,12 +706,6 @@ function setupElementDragAndResize(el) {
             function onMouseUp() {
                 window.removeEventListener("mousemove", onMouseMove);
                 window.removeEventListener("mouseup", onMouseUp);
-                
-                const img = el.querySelector("img");
-                if (img) {
-                    delete img.dataset.cropImgLeft;
-                    delete img.dataset.cropImgTop;
-                }
             }
             
             window.addEventListener("mousemove", onMouseMove);

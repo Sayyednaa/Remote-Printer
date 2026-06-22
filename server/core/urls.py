@@ -3,10 +3,13 @@ from core import views
 
 urlpatterns = [
     # Web views
-    path('', views.dashboard_view, name='dashboard'),
+    path('', views.home_view, name='home'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('privacy/', views.privacy_view, name='privacy'),
+    path('terms/', views.terms_view, name='terms'),
     
     # Web actions
     path('printer/<int:printer_id>/toggle/', views.printer_toggle_view, name='printer_toggle'),

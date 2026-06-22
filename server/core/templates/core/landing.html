@@ -1,0 +1,476 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}WireToWeb - Cloud Printing for Legacy &amp; Non-Wi-Fi Printers{% endblock %}
+
+{% block extra_head %}
+<!-- SEO Meta Tags for First Page Ranking on Google -->
+<meta name="description" content="WireToWeb: The ultimate cloud printing middleware solution. Convert legacy USB, parallel, and non-Wi-Fi printers into secure, cloud-enabled devices. Print from anywhere globally without complex network config, VPNs, or port forwarding. Built-in A4 canvas editor.">
+<meta name="keywords" content="cloud printing, legacy printers, usb printer cloud, remote printing, print from anywhere, non wifi printer internet, self hosted print server, printing middleware, A4 canvas layout editor, secure global printing, no vpn print server, WireToWeb">
+<meta name="author" content="WireToWeb Team">
+<link rel="canonical" href="https://wiretoweb.com/">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://wiretoweb.com/">
+<meta property="og:title" content="WireToWeb - Secure Cloud Printing for Legacy &amp; Non-Wi-Fi Printers">
+<meta property="og:description" content="Expose legacy USB and local spooler printers to the internet securely. Design and print A4 layouts globally with zero network configurations, VPNs, or open ports.">
+<meta property="og:image" content="{% static 'img/logo.png' %}">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://wiretoweb.com/">
+<meta property="twitter:title" content="WireToWeb - Secure Cloud Printing for Legacy &amp; Non-Wi-Fi Printers">
+<meta property="twitter:description" content="Convert local USB printers to secure cloud endpoints. Design on A4 canvas and print remotely with outbound-only polling agent.">
+<meta property="twitter:image" content="{% static 'img/logo.png' %}">
+
+<style>
+  /* ==========================================================================
+     Floating Fluttering A4 Papers Background (Thematic)
+     ========================================================================== */
+  .paper-sheets {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .paper-sheet {
+    position: absolute;
+    bottom: -150px;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+    aspect-ratio: 1 / 1.414; /* A4 aspect ratio */
+    border-radius: 1px;
+    animation: flutterPaper linear forwards;
+    will-change: transform, opacity;
+    display: flex;
+    flex-direction: column;
+    padding: 8% 6%;
+    box-sizing: border-box;
+    gap: 6%;
+  }
+
+  /* Miniature paper contents: text lines / letterhead blocks */
+  .paper-line {
+    background-color: rgba(0, 0, 0, 0.08);
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  .paper-header {
+    background-color: rgba(255, 77, 139, 0.18);
+    height: 12%;
+    border-radius: 1px;
+    width: 45%;
+    margin-bottom: 8%;
+  }
+
+  @keyframes flutterPaper {
+    0% {
+      transform: translateY(0) translateX(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: var(--paper-opacity, 0.25);
+    }
+    30% {
+      transform: translateY(-35vh) translateX(calc(var(--drift-x) * 0.35 - 15px)) rotateX(20deg) rotateY(15deg) rotateZ(-12deg);
+    }
+    60% {
+      transform: translateY(-70vh) translateX(calc(var(--drift-x) * 0.7 + 20px)) rotateX(-15deg) rotateY(-20deg) rotateZ(18deg);
+    }
+    85% {
+      opacity: var(--paper-opacity, 0.25);
+    }
+    100% {
+      transform: translateY(-125vh) translateX(var(--drift-x)) rotateX(5deg) rotateY(5deg) rotateZ(var(--rotate-angle, 60deg));
+      opacity: 0;
+    }
+  }
+
+  /* ==========================================================================
+     Hero & Card Animations
+     ========================================================================== */
+  .hero-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: center;
+    text-align: left;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 2;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-layout-grid {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 60px;
+    }
+  }
+
+  .hero-illustration-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    animation: floatIllustration 6s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  .hero-illustration-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--rounded-xl);
+    box-shadow: 0 20px 45px rgba(10, 10, 10, 0.05);
+    border: 1px solid var(--color-hairline);
+    background-color: white;
+  }
+
+  @keyframes floatIllustration {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+
+  /* Interactive clay cards hover states */
+  .feature-card {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Scroll Reveal transitions */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* Mobile Tweaks */
+  @media (max-width: 768px) {
+    .hero-layout-grid {
+      text-align: center;
+      gap: 30px;
+    }
+    .hero-cta-group {
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .hero-cta-group .btn {
+      width: 100%;
+      height: 48px;
+    }
+    .hero-illustration-wrapper img {
+      max-width: 280px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background Paper Container -->
+<div class="paper-sheets js-paper-sheets"></div>
+
+<div style="position: relative; z-index: 2;">
+  
+  <!-- Hero Section -->
+  <div class="container" style="padding-top: 60px; padding-bottom: 20px;">
+    <div class="hero-layout-grid">
+      
+      <!-- Hero Left Column -->
+      <div class="reveal">
+        <div class="badge" style="margin-bottom: 20px; background-color: var(--color-surface-card); color: var(--color-brand-pink); border: 1px solid var(--color-hairline); padding: 6px 14px; font-size: 13px;">
+          🔌 Bring Legacy USB &amp; Non-Wi-Fi Printers Online
+        </div>
+        <h1 style="font-size: 56px; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; font-weight: 700;">
+          Your Legacy Printers.<br>Connected Globally.
+        </h1>
+        <p style="font-size: 18px; color: var(--color-muted); line-height: 1.6; margin-bottom: 32px;">
+          WireToWeb converts any standard USB, parallel, or non-Wi-Fi printer into a secure, cloud-enabled device. Design custom layouts on our A4 editor or upload documents from anywhere in the world, and print silently to your local hardware.
+        </p>
+        <div class="hero-cta-group" style="justify-content: flex-start; margin-bottom: 0;">
+          <a href="{% url 'register' %}" class="btn btn-primary" style="height: 48px; padding: 0 28px; font-size: 15px; border-radius: var(--rounded-pill);">Create Free Account</a>
+          <a href="{% url 'login' %}" class="btn btn-secondary" style="height: 48px; padding: 0 28px; font-size: 15px; border-radius: var(--rounded-pill);">Sign In</a>
+        </div>
+      </div>
+      
+      <!-- Hero Right Column (Animated Illustration) -->
+      <div class="hero-illustration-wrapper reveal reveal-delay-2">
+        <img src="{% static 'img/hero_illustration.png' %}" alt="WireToWeb Cloud Connection Illustration" style="width: 100%; max-width: 440px; height: auto;">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Graphical UI Preview -->
+  <div class="container reveal" style="padding-bottom: 80px;">
+    <div class="hero-preview">
+      <div class="hero-preview-header">
+        <div class="preview-dot-group">
+          <span class="preview-dot"></span>
+          <span class="preview-dot"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <div style="font-size: 12px; color: var(--color-muted); font-weight: 500; letter-spacing: 0.5px;">wiretoweb.com/canvas</div>
+        <div style="width: 32px;"></div>
+      </div>
+      
+      <div class="hero-preview-body">
+        <!-- Graphic Editor Mock -->
+        <div class="preview-main-graphic" style="background-color: var(--color-canvas); font-size: 14px; text-align: center; border: 2px dashed var(--color-brand-pink); position: relative;">
+          <div style="background: white; border: 1px solid var(--color-hairline); border-radius: 8px; padding: 16px; width: 150px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); transform: rotate(-3deg); transition: transform 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='rotate(0deg) scale(1.05)'" onmouseout="this.style.transform='rotate(-3deg)'">
+            <div style="width: 48px; height: 48px; background: var(--color-brand-pink); border-radius: 8px; margin: 0 auto 12px auto; display: block; overflow: hidden; position: relative;">
+              <!-- Mini Crop representation -->
+              <div style="position: absolute; border: 1.5px dashed white; top: 6px; left: 6px; right: 6px; bottom: 6px;"></div>
+            </div>
+            <div style="height: 8px; background: var(--color-brand-teal); border-radius: 3px; width: 80%; margin: 0 auto 6px auto;"></div>
+            <div style="height: 6px; background: var(--color-brand-lavender); border-radius: 2px; width: 50%; margin: 0 auto;"></div>
+          </div>
+          
+          <div style="position: absolute; bottom: 12px; right: 12px; background: var(--color-brand-teal); color: white; padding: 5px 12px; border-radius: var(--rounded-pill); font-size: 11px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            Global Canvas Workspace
+          </div>
+        </div>
+        
+        <!-- Graphic Controls Mock -->
+        <div class="preview-sidebar-controls">
+          <div style="font-weight: 600; font-size: 13px; color: var(--color-ink); margin-bottom: 4px;">Element Properties</div>
+          <div class="preview-ctrl-bar"></div>
+          <div class="preview-ctrl-bar short"></div>
+          
+          <div style="height: 1px; background-color: var(--color-hairline); margin: 8px 0;"></div>
+          
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1; height: 32px; background-color: var(--color-brand-pink); border-radius: 6px; color: white; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer;">Crop Tool</div>
+            <div style="flex: 1; height: 32px; background-color: var(--color-surface-soft); border: 1px solid var(--color-hairline); border-radius: 6px; color: var(--color-ink); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer;">Layer Up</div>
+          </div>
+          
+          <div style="height: 1px; background-color: var(--color-hairline); margin: 8px 0;"></div>
+          
+          <div style="font-weight: 600; font-size: 12px; color: var(--color-muted); margin-bottom: 2px;">Target USB Printer (Local)</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--color-ink); font-weight: 500;">
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: var(--color-success); border-radius: 50%;"></span>
+            HP LaserJet M1136 (Registered)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Waves Transition & Features Section -->
+  <div style="background-color: var(--color-surface-soft); padding: 80px 0; position: relative; margin-top: 60px;">
+    
+    <!-- Top Wave Divider -->
+    <div style="position: absolute; top: -59px; left: 0; width: 100%; overflow: hidden; line-height: 0; z-index: 1;">
+      <svg viewBox="0 0 1200 120" preserveAspectRatio="none" style="position: relative; display: block; width: 100%; height: 60px;">
+        <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1122.21,118.89,1055.71,111.28,985.66,92.83Z" style="fill: var(--color-surface-soft);"></path>
+      </svg>
+    </div>
+
+    <div class="container" style="text-align: center; position: relative; z-index: 2;">
+      <div class="reveal">
+        <h2 style="font-size: 36px; letter-spacing: -0.8px; margin-bottom: 12px; font-weight: 600; color: var(--color-ink);">Bridges Hardware to the Cloud</h2>
+        <p style="color: var(--color-muted); max-width: 600px; margin: 0 auto 56px auto; font-size: 16px;">
+          A robust, self-hosted middleware solution designed to modernize legacy desktop printing infrastructure.
+        </p>
+      </div>
+
+      <div class="card-grid">
+        <!-- Feature Card 1 -->
+        <div class="feature-card feature-card-pink reveal reveal-delay-1">
+          <div>
+            <span style="font-size: 32px;">🔌</span>
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: white;">Bridges Non-Wi-Fi Hardware</h3>
+            <p style="font-size: 14px; opacity: 0.9; color: white; line-height: 1.5;">
+              Bring USB, Parallel, or locally-spooled printers online. Our light background agent securely exposes desktop printer hardware to the web.
+            </p>
+          </div>
+          <div style="font-size: 11px; font-weight: 600; opacity: 0.85; letter-spacing: 1px; text-transform: uppercase; margin-top: 24px; color: white;">Legacy Hardware Support</div>
+        </div>
+
+        <!-- Feature Card 2 -->
+        <div class="feature-card feature-card-teal reveal reveal-delay-2">
+          <div>
+            <span style="font-size: 32px;">🌐</span>
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: white;">Print from Anywhere</h3>
+            <p style="font-size: 14px; opacity: 0.9; color: white; line-height: 1.5;">
+              Send documents or custom designs from any smartphone, tablet, or laptop worldwide. No VPNs, static IPs, or port forwarding required.
+            </p>
+          </div>
+          <div style="font-size: 11px; font-weight: 600; opacity: 0.85; letter-spacing: 1px; text-transform: uppercase; margin-top: 24px; color: white;">Global Access</div>
+        </div>
+
+        <!-- Feature Card 3 -->
+        <div class="feature-card feature-card-peach reveal reveal-delay-3">
+          <div>
+            <span style="font-size: 32px;">🎨</span>
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: var(--color-ink);">Universal Page Canvas</h3>
+            <p style="font-size: 14px; color: var(--color-ink); line-height: 1.5; opacity: 0.95;">
+              Upload documents directly or lay out custom shipping labels, badges, or collages on a visual A4 canvas editor with rich freeform cropping.
+            </p>
+          </div>
+          <div style="font-size: 11px; font-weight: 600; color: var(--color-ink); letter-spacing: 1px; text-transform: uppercase; margin-top: 24px; opacity: 0.8;">Canvas Designer</div>
+        </div>
+
+        <!-- Feature Card 4 -->
+        <div class="feature-card feature-card-lavender reveal reveal-delay-4">
+          <div>
+            <span style="font-size: 32px;">🔒</span>
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: var(--color-ink);">Secure Agent-Driven Pull</h3>
+            <p style="font-size: 14px; color: var(--color-ink); line-height: 1.5; opacity: 0.95;">
+              Printers poll queues over secure HTTPS. Print payloads are immediately deleted from server storage upon delivery to protect private documents.
+            </p>
+          </div>
+          <div style="font-size: 11px; font-weight: 600; color: var(--color-ink); letter-spacing: 1px; text-transform: uppercase; margin-top: 24px; opacity: 0.8;">Security &amp; Privacy</div>
+        </div>
+      </div>
+
+      <!-- Bottom CTA Section -->
+      <div class="reveal reveal-delay-2" style="margin-top: 60px; text-align: center; padding: 0 16px;">
+        <a href="{% url 'register' %}" class="btn btn-primary" style="height: 52px; padding: 0 36px; font-size: 16px; border-radius: var(--rounded-pill); box-shadow: 0 4px 15px rgba(10, 10, 10, 0.15); width: 100%; max-width: 320px; display: inline-flex; align-items: center; justify-content: center;">
+          Start Printing Globally
+        </a>
+      </div>
+    </div>
+    
+    <!-- Bottom Wave Divider -->
+    <div style="position: absolute; bottom: -59px; left: 0; width: 100%; overflow: hidden; line-height: 0; transform: rotate(180deg); z-index: 1;">
+      <svg viewBox="0 0 1200 120" preserveAspectRatio="none" style="position: relative; display: block; width: 100%; height: 60px;">
+        <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1122.21,118.89,1055.71,111.28,985.66,92.83Z" style="fill: var(--color-surface-soft);"></path>
+      </svg>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+      // Scroll Reveal Intersection Observer
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                  entry.target.classList.add("active");
+                  observer.unobserve(entry.target);
+              }
+          });
+      }, {
+          threshold: 0.1,
+          rootMargin: "0px 0px -50px 0px"
+      });
+      
+      reveals.forEach(el => observer.observe(el));
+      
+      // Floating data papers animation (Thematic A4 paper fluttering)
+      const paperContainer = document.querySelector(".js-paper-sheets");
+      if (paperContainer) {
+          const isMobile = window.innerWidth < 768;
+          const spawnInterval = isMobile ? 3200 : 1500; // Limit rendering payload
+          
+          const createPaper = () => {
+              const paper = document.createElement("div");
+              paper.className = "paper-sheet";
+              
+              // Random widths: 25px to 55px (with A4 aspect ratio height auto-calculated by CSS)
+              const width = Math.random() * 30 + 25;
+              paper.style.width = `${width}px`;
+              
+              // Random horizontal start position
+              paper.style.left = `${Math.random() * 100}vw`;
+              
+              // Random horizontal drift using translation variables
+              const drift = (Math.random() - 0.5) * 200; // -100px to 100px
+              paper.style.setProperty("--drift-x", `${drift}px`);
+              
+              // Random rotation angle for 3D flutter: -180deg to 180deg
+              const rotateAngle = Math.random() * 360 - 180;
+              paper.style.setProperty("--rotate-angle", `${rotateAngle}deg`);
+              
+              // Random animation duration: 11s to 20s (slower, more elegant paper drift)
+              const duration = Math.random() * 9 + 11;
+              paper.style.animationDuration = `${duration}s`;
+              
+              // Random opacity: 0.12 to 0.35
+              const opacity = Math.random() * 0.23 + 0.12;
+              paper.style.setProperty("--paper-opacity", opacity);
+              
+              // Create dynamic internal miniature layout structure
+              const header = document.createElement("div");
+              header.className = "paper-header";
+              
+              const linesContainer = document.createElement("div");
+              linesContainer.style.display = "flex";
+              linesContainer.style.flexDirection = "column";
+              linesContainer.style.gap = "3px";
+              linesContainer.style.width = "100%";
+              
+              const numLines = Math.floor(Math.random() * 3) + 3; // 3 to 5 content lines
+              for (let l = 0; l < numLines; l++) {
+                  const line = document.createElement("div");
+                  line.className = "paper-line";
+                  line.style.width = `${Math.random() * 40 + 55}%`; // 55% to 95% line width
+                  linesContainer.appendChild(line);
+              }
+              
+              paper.appendChild(header);
+              paper.appendChild(linesContainer);
+              
+              // Color tint variation (Pink or Teal accent)
+              const isPink = Math.random() > 0.5;
+              if (isPink) {
+                  paper.style.borderColor = "rgba(255, 77, 139, 0.18)";
+                  header.style.backgroundColor = "rgba(255, 77, 139, 0.15)";
+              } else {
+                  paper.style.borderColor = "rgba(26, 58, 58, 0.15)";
+                  header.style.backgroundColor = "rgba(26, 58, 58, 0.12)";
+              }
+              
+              paperContainer.appendChild(paper);
+              
+              // Remove after animation finishes
+              setTimeout(() => {
+                  paper.remove();
+              }, duration * 1000);
+          };
+          
+          // Spawn initial set staggered
+          const initialCount = isMobile ? 2 : 6;
+          for (let i = 0; i < initialCount; i++) {
+              setTimeout(createPaper, Math.random() * 6000);
+          }
+          
+          // Continuous periodic spawning
+          setInterval(createPaper, spawnInterval);
+      }
+  });
+</script>
+{% endblock %}
