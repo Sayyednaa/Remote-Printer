@@ -68,15 +68,15 @@
           <tbody>
             {% for printer in printers %}
               <tr data-printer-id="{{ printer.id }}">
-                <td style="font-weight: 600; color: var(--color-ink);">{{ printer.name }}</td>
-                <td>{{ printer.computer_name|default:"-" }}</td>
-                <td>{{ printer.windows_username|default:"-" }}</td>
-                <td>
+                <td data-label="Printer Name" style="font-weight: 600; color: var(--color-ink);">{{ printer.name }}</td>
+                <td data-label="Computer">{{ printer.computer_name|default:"-" }}</td>
+                <td data-label="Windows User">{{ printer.windows_username|default:"-" }}</td>
+                <td data-label="Status">
                   <span class="badge badge-printer-status {% if printer.status == 'ONLINE' %}badge-online{% elif printer.status == 'OFFLINE' %}badge-offline{% elif printer.status == 'BUSY' %}badge-busy{% else %}badge-error{% endif %}">
                     {{ printer.get_status_display }}
                   </span>
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div style="display: flex; gap: 8px;">
                     <a href="{% url 'printer_toggle' printer.id %}" class="btn btn-secondary btn-sm" style="height: 28px; padding: 4px 10px; font-size: 12px;">
                       {% if printer.is_active %}Disable{% else %}Enable{% endif %}
@@ -119,14 +119,14 @@
           <tbody>
             {% for job in recent_jobs %}
               <tr data-job-id="{{ job.id }}">
-                <td>#{{ job.id }}</td>
-                <td style="font-weight: 600; color: var(--color-ink);">{{ job.document.original_name }}</td>
-                <td>{{ job.printer.name }}</td>
-                <td style="font-size: 12px; color: var(--color-muted);">
+                <td data-label="Job ID">#{{ job.id }}</td>
+                <td data-label="File Name" style="font-weight: 600; color: var(--color-ink);">{{ job.document.original_name }}</td>
+                <td data-label="Printer">{{ job.printer.name }}</td>
+                <td data-label="Options" style="font-size: 12px; color: var(--color-muted);">
                   {{ job.copies }} copy{% if job.copies > 1 %}ies{% endif %}, {{ job.get_paper_size_display }}, {{ job.get_orientation_display }}, {{ job.get_color_mode_display }}
                 </td>
-                <td>{{ job.created_at|date:"Y-m-d H:i:s" }}</td>
-                <td>
+                <td data-label="Created At">{{ job.created_at|date:"Y-m-d H:i:s" }}</td>
+                <td data-label="Status">
                   <span class="badge badge-job-status {% if job.status == 'COMPLETED' %}badge-online{% elif job.status == 'PENDING' %}badge-busy{% elif job.status == 'FAILED' or job.status == 'CANCELLED' %}badge-error{% else %}badge-offline{% endif %}">
                     {{ job.get_status_display }}
                   </span>
@@ -136,7 +136,7 @@
                     </div>
                   {% endif %}
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div style="display: flex; gap: 8px;">
                     {% if job.status == 'PENDING' or job.status == 'DOWNLOADED' or job.status == 'PRINTING' %}
                       <a href="{% url 'job_cancel' job.id %}" class="btn btn-secondary btn-sm" style="height: 28px; padding: 4px 10px; font-size: 12px;">Cancel</a>

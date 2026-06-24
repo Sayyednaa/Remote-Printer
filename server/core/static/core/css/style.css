@@ -885,6 +885,58 @@ textarea.form-control {
     grid-template-columns: 1fr;
     gap: 16px;
   }
+
+  /* Responsive Tables as Cards */
+  .table-responsive {
+    border: none;
+    border-radius: 0;
+  }
+  table.table, table.table thead, table.table tbody, table.table th, table.table td, table.table tr {
+    display: block;
+  }
+  table.table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  table.table tr {
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--rounded-lg);
+    background-color: var(--color-canvas);
+    margin-bottom: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  table.table td {
+    border: none;
+    border-bottom: 1px solid var(--color-hairline);
+    position: relative;
+    padding-left: 45% !important;
+    text-align: right;
+    padding: 10px 0 !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 40px;
+  }
+  table.table td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0 !important;
+  }
+  table.table td:before {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 6px;
+    width: 40%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-muted);
+    content: attr(data-label);
+    font-size: 13px;
+  }
   .dashboard-title-row {
     flex-direction: column;
     align-items: flex-start;
